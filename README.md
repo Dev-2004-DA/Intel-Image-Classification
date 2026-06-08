@@ -76,6 +76,28 @@ The train-test gap of only **2.5%** indicates healthy generalization with minima
 
 ---
 
+## Training Curves
+
+> **Note:** Epochs start from 8 because the best hyperparameter configuration was identified after 7 epochs of tuning. Full training resumed from epoch 8 onwards using the best tuned weights.
+
+| Accuracy | Loss |
+|----------|------|
+| ![Accuracy](images/accuracy.png) | ![Loss](images/loss.png) |
+
+**Interpretation:**
+
+**Accuracy (Epochs 8–18):**
+- Train accuracy climbs steadily from ~78% → 80%, showing the model is consistently learning
+- Validation accuracy fluctuates between 73–78%, with a best peak of **77.53%** at epoch 12
+- The gap between train and val is small and consistent — indicates **healthy generalization with no severe overfitting**
+
+**Loss (Epochs 8–18):**
+- Train loss decreases smoothly from ~0.58 → 0.527, confirming stable learning
+- Validation loss fluctuates heavily (spikes visible at epochs 8 and 14) — this instability is the primary **mild overfitting signal**
+- The fact that val loss never diverges permanently confirms that SpatialDropout + Augmentation are containing overfitting, but the architecture has reached its representational ceiling at **77.8%**
+
+---
+
 ## Key Observations
 
 - Both hyperparameter tuning runs converged to the same **77.8% ceiling**, confirming the architecture itself is the bottleneck — not regularization or optimizer choice
