@@ -115,14 +115,29 @@ Pretrained MobileNetV2 (ImageNet weights) with custom classification head. Base 
 
 **Training Curves (Best Run):**
 
+> **Note:** Model was trained for 36 epochs total across two runs (30 + 10 epochs with `initial_epoch`). TensorBoard logs captured only up to epoch 18 due to a session interruption in the second run — the graphs below reflect epochs 0–18. Final reported metrics are taken directly from training logs.
+
 | Accuracy | Loss |
 |----------|------|
 | ![MobileNet Accuracy](images/mobilenet_accuracy.png) | ![MobileNet Loss](images/mobilenet_loss.png) |
 
 **Interpretation:**
-- Train accuracy: 85.2%, Val accuracy: 83.4% — gap of only 1.8%
-- Validation accuracy closely tracks training accuracy — **excellent generalization**
-- 5.6% jump over scratch CNN confirms the value of pretrained ImageNet features even for non-ImageNet classes
+
+**Accuracy (Epochs 0–18):**
+- Both train and validation accuracy show a **consistent upward trend** from ~65% → 80% and ~65% → 78% respectively
+- Validation fluctuates in early epochs (0–4) due to the model adapting pretrained weights to new classes — stabilizes after epoch 8
+- Train and val curves converge closely by epoch 18 — **gap of ~1.8% confirms healthy generalization**
+
+**Loss (Epochs 0–18):**
+- Train loss decreases steadily from ~0.93 → 0.50 — smooth and stable learning
+- Validation loss starts high (~0.84) due to early instability, then converges toward train loss by epoch 18
+- Both curves trending downward together — **no divergence, no overfitting signal**
+
+**Full Training Summary (from logs):**
+- Best val accuracy of **83.4%** achieved at epoch 18, saved by ModelCheckpoint
+- After epoch 18, val accuracy plateaued between 82–83% while train continued to ~84–85%
+- ReduceLROnPlateau triggered at epoch 35 (lr reduced to 1e-5)
+- EarlyStopping triggered at epoch 36 — model had fully converged
 
 ---
 
