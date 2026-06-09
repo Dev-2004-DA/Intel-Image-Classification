@@ -123,21 +123,23 @@ Pretrained MobileNetV2 (ImageNet weights) with custom classification head. Base 
 
 **Interpretation:**
 
-**Accuracy (Epochs 0–18):**
-- Both train and validation accuracy show a **consistent upward trend** from ~65% → 80% and ~65% → 78% respectively
-- Validation fluctuates in early epochs (0–4) due to the model adapting pretrained weights to new classes — stabilizes after epoch 8
-- Train and val curves converge closely by epoch 18 — **gap of ~1.8% confirms healthy generalization**
+**Accuracy (Epochs 0–18, from TensorBoard):**
+- Both train and validation accuracy show a consistent upward trend from ~65% → 80% and ~65% → 78% respectively
+- Validation fluctuates in early epochs (1–7) — val loss was high (1.2–1.7) indicating the frozen pretrained weights were not yet adapted to the new classes
+- After epoch 8 (val accuracy jumped to 81.77%) both curves stabilize and climb together
+- ReduceLROnPlateau triggered at epoch 16 (lr: 0.001 → 0.0001) — caused a noticeable accuracy jump at epoch 17 (82.63%) and epoch 18 (82.93%)
 
-**Loss (Epochs 0–18):**
-- Train loss decreases steadily from ~0.93 → 0.50 — smooth and stable learning
-- Validation loss starts high (~0.84) due to early instability, then converges toward train loss by epoch 18
-- Both curves trending downward together — **no divergence, no overfitting signal**
+**Loss (Epochs 0–18, from TensorBoard):**
+- Train loss decreases steadily from ~0.93 → 0.44 — smooth and stable learning throughout
+- Validation loss starts very high (~1.22) in early epochs due to pretrained weight mismatch, then converges significantly after epoch 8
+- By epoch 18 val loss reached 0.54 — both curves trending downward with no divergence
 
-**Full Training Summary (from logs):**
-- Best val accuracy of **83.4%** achieved at epoch 18, saved by ModelCheckpoint
-- After epoch 18, val accuracy plateaued between 82–83% while train continued to ~84–85%
-- ReduceLROnPlateau triggered at epoch 35 (lr reduced to 1e-5)
-- EarlyStopping triggered at epoch 36 — model had fully converged
+**Full Training Summary (from logs, Epochs 1–30):**
+- Best val accuracy of **83.4%** achieved at epoch 24 (train: 83.7%, val loss: 0.4839) — saved by ModelCheckpoint
+- After epoch 24, val accuracy plateaued between 82–83.4% — model had reached its ceiling
+- ReduceLROnPlateau triggered again at epoch 35 (lr: 1e-4 → 1e-5)
+- EarlyStopping triggered at epoch 30 (first run) and epoch 36 (second run) — model fully converged
+- **Final best: Train 83.7% — Val 83.4% — Gap: 0.3%** — near-perfect generalization
 
 ---
 
