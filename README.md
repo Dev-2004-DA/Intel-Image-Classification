@@ -4,7 +4,7 @@
 
 ## Overview
 
-This project classifies natural scene images into 6 categories using a progressive deep learning approach — starting from a **CNN built from scratch**, then applying **Transfer Learning with MobileNetV2**, and finally **EfficientNetB3** for maximum accuracy. 
+This project classifies natural scene images into 6 categories using a progressive deep learning approach — starting from a **CNN built from scratch**, then applying **Transfer Learning with MobileNetV2**, and finally **Xception** for maximum accuracy.
 
 The dataset was deliberately chosen because its 6 scene categories are not standard ImageNet classes, making it an honest benchmark for evaluating both scratch and pretrained model performance.
 
@@ -36,15 +36,20 @@ Intel-Image-Classification/
 ├── notebooks/
 │   ├── 01_CNN_from_scratch.ipynb
 │   ├── 02_Pretrained_MobileNetV2.ipynb
-│   └── 03_EfficientNetB3.ipynb             # Coming soon
+│   ├── 03_Xception_Transfer_Learning.ipynb
+│   └── 04_Model_Comparison.ipynb
 ├── models/
 │   ├── BEST_MODEL.keras                    # CNN from scratch
-│   └── BEST_MODEL_MOBILENET.keras          # MobileNetV2 best
+│   ├── BEST_MODEL_MOBILENET.keras          # MobileNetV2 best
+│   └── # Xception model too large for GitHub (112MB)
+│     # Download: https://drive.google.com/file/d/1_sesT3Y5-_PJkrX_zcgpqCVhsg8N0xEL/view?usp=sharing
 ├── images/
 │   ├── cnn_accuracy.png
 │   ├── cnn_loss.png
 │   ├── mobilenet_accuracy.png
-│   └── mobilenet_loss.png
+│   ├── mobilenet_loss.png
+│   ├── xception_accuracy.png
+│   └── xception_loss.png
 └── README.md
 ```
 
@@ -55,10 +60,10 @@ Intel-Image-Classification/
 | Model | Train Accuracy | Test Accuracy | Generalization Gap |
 |-------|---------------|---------------|--------------------|
 | CNN from Scratch | 80.27% | **77.80%** | 2.5% |
-| MobileNetV2 (Transfer Learning) | 85.20% | **83.40%** | 1.8% |
-| EfficientNetB3 (Transfer Learning) | — | 🔄 Coming Soon | — |
+| MobileNetV2 (Transfer Learning) | 83.70% | **83.40%** | 0.3% |
+| Xception (Transfer Learning) | 93.55% | **91.73%** | 1.8% |
 
-**Key insight:** The generalization gap actually *improved* from scratch CNN (2.5%) to MobileNetV2 (1.8%), confirming that pretrained features not only boost accuracy but also improve generalization.
+**Key insight:** Progressive improvement across all three architectures — **13.93% jump from scratch CNN to Xception** — with Xception achieving near-professional accuracy on a challenging scene classification task.
 
 ---
 
@@ -77,6 +82,7 @@ A custom Sequential CNN built without any pretrained weights.
 
 **Training:**
 - Optimizer: RMSprop (lr = 0.001)
+- Loss: Sparse Categorical Crossentropy
 - Hyperparameter Tuning: Keras Tuner (2 runs)
 - Callbacks: EarlyStopping, ReduceLROnPlateau, ModelCheckpoint, TensorBoard
 
@@ -97,7 +103,7 @@ A custom Sequential CNN built without any pretrained weights.
 
 ## Model 2 — MobileNetV2 (Transfer Learning)
 
-Pretrained MobileNetV2 (ImageNet weights) with custom classification head. Base layers frozen initially, then fine-tuned progressively.
+Pretrained MobileNetV2 (ImageNet weights) with custom classification head. Base layers frozen initially, then fine-tuned progressively across 3 runs.
 
 **Architecture:**
 - **Data Augmentation** — RandomFlip, RandomRotation, RandomZoom, RandomTranslation
@@ -115,7 +121,7 @@ Pretrained MobileNetV2 (ImageNet weights) with custom classification head. Base 
 
 **Training Curves (Best Run):**
 
-> **Note:** Model was trained for 36 epochs total across two runs (30 + 10 epochs with `initial_epoch`). TensorBoard logs captured only up to epoch 18 due to a session interruption in the second run — the graphs below reflect epochs 0–18. Final reported metrics are taken directly from training logs.
+> **Note:** Model trained for 36 epochs total across two runs (30 + 10 epochs). TensorBoard logs captured up to epoch 18 due to session interruption in the second run — graphs below reflect epochs 0–18. Final metrics taken from training logs.
 
 | Accuracy | Loss |
 |----------|------|
@@ -134,21 +140,64 @@ Pretrained MobileNetV2 (ImageNet weights) with custom classification head. Base 
 - Validation loss starts very high (~1.22) in early epochs due to pretrained weight mismatch, then converges significantly after epoch 8
 - By epoch 18 val loss reached 0.54 — both curves trending downward with no divergence
 
-**Full Training Summary (from logs, Epochs 1–30):**
+**Full Training Summary (from logs, Epochs 1–36):**
 - Best val accuracy of **83.4%** achieved at epoch 24 (train: 83.7%, val loss: 0.4839) — saved by ModelCheckpoint
 - After epoch 24, val accuracy plateaued between 82–83.4% — model had reached its ceiling
-- ReduceLROnPlateau triggered again at epoch 35 (lr: 1e-4 → 1e-5)
-- EarlyStopping triggered at epoch 30 (first run) and epoch 36 (second run) — model fully converged
+- ReduceLROnPlateau triggered at epoch 35 (lr: 1e-4 → 1e-5), EarlyStopping at epoch 36
 - **Final best: Train 83.7% — Val 83.4% — Gap: 0.3%** — near-perfect generalization
+
+---
+
+## Model 3 — Xception (Transfer Learning)
+
+Pretrained Xception (ImageNet weights) with custom classification head. Last 20 layers unfrozen for fine-tuning.
+
+**Architecture:**
+- **Data Augmentation** — RandomFlip, RandomRotation, RandomZoom, RandomTranslation
+- Xception base (last 20 layers unfrozen, rest frozen)
+- GlobalMaxPooling2D → Dense(256, ReLU) → BatchNorm → Dense(128, ReLU) → BatchNorm → Dense(64, ReLU) → BatchNorm → Dense(6, Softmax)
+
+**Training:**
+- Optimizer: RMSprop (default)
+- Loss: Sparse Categorical Crossentropy
+- Regularization: Data Augmentation
+- Callbacks: EarlyStopping (patience=6), ReduceLROnPlateau, ModelCheckpoint, TensorBoard
+- Stopped at epoch 9 via EarlyStopping — model converged quickly
+
+**Training Curves:**
+
+| Accuracy | Loss |
+|----------|------|
+| ![Xception Accuracy](images/xception_accuracy.png) | ![Xception Loss](images/xception_loss.png) |
+
+**Interpretation:**
+
+**Accuracy (Epochs 0–8):**
+- Validation accuracy starts at **88.8% from epoch 1** — pretrained Xception features are immediately powerful even for non-ImageNet classes
+- Train accuracy climbs steadily from 79.4% → 90.6% while val stays consistently above train in early epochs (89–91%)
+- Val accuracy peaks at **91.73% at epoch 7** — saved by ModelCheckpoint
+- Both curves converge closely by epoch 8 confirming stable generalization
+
+**Loss (Epochs 0–8):**
+- Train loss drops sharply from 0.46 → 0.27 — fast and stable learning
+- Val loss consistently lower than train loss throughout — **no overfitting signal at all**
+- Both curves trend downward together, converging by epoch 8
+
+**Full Training Summary (from logs):**
+- Best val accuracy of **91.73%** achieved at epoch 7
+- Train accuracy at best checkpoint: 90.1%, val loss: 0.2396
+- model.evaluate() — Train: **93.55%**, Test: **91.73%** — Gap: **1.82%**
+- EarlyStopping triggered at epoch 9 — model fully converged in just 9 epochs
 
 ---
 
 ## Key Observations
 
-- Both HP tuning runs on scratch CNN converged to 77.8% — architecture was the bottleneck
-- MobileNetV2 with fine-tuning improved accuracy by **5.6%** and reduced generalization gap from 2.5% → 1.8%
-- Progressive fine-tuning (unfreezing more layers across runs) was key — too frozen = underfitting, too unfrozen = overfitting
-- EfficientNetB3 expected to push further to ~90%+ due to compound scaling and Squeeze & Excitation blocks
+- Scratch CNN converged to 77.8% ceiling across two independent HP tuning runs — architecture was the bottleneck
+- MobileNetV2 improved accuracy by **5.6%** over scratch CNN with near-zero generalization gap (0.3%)
+- Xception achieved **91.73%** — a **13.93% improvement** over scratch CNN in just 9 epochs of training
+- Xception's val accuracy exceeded train accuracy in early epochs — pretrained features generalize immediately
+- Progressive fine-tuning (unfreezing last 20 layers) was key across both Transfer Learning models
 
 ---
 
@@ -169,14 +218,15 @@ Pretrained MobileNetV2 (ImageNet weights) with custom classification head. Base 
 3. Upload your `kaggle.json` API key when prompted
 4. Run all cells sequentially
 
+> 📦 **Xception Model:** Exceeds GitHub's 100MB limit. Download from [Google Drive](https://drive.google.com/file/d/1_sesT3Y5-_PJkrX_zcgpqCVhsg8N0xEL/view?usp=sharing)
+
 ---
 
 ## Next Steps
 
-- [ ] EfficientNetB3 Transfer Learning
+- [ ] Final model comparison notebook (04_Model_Comparison.ipynb)
 - [ ] Prediction visualization on unlabelled `seg_pred` data
-- [ ] Confusion matrix and classification report on best model
-- [ ] Streamlit deployment
+- [ ] Confusion matrix and classification report on best model (Xception)
 
 ---
 
