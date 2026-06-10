@@ -323,7 +323,3 @@ Out of the 143 images where all three models gave different predictions, 12 were
 > 📦 **Xception Model:** Exceeds GitHub's 100MB limit. Download from [Google Drive](https://drive.google.com/file/d/1_sesT3Y5-_PJkrX_zcgpqCVhsg8N0xEL/view?usp=sharing)
 
 ---
-
----
-
-*Part of an ongoing Deep Learning portfolio — M.Sc. Statistics, University of Delhi*
