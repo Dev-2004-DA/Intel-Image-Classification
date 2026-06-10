@@ -109,7 +109,6 @@ A custom Sequential CNN built without any pretrained weights.
 - This ceiling justified the move to Transfer Learning
 
 ---
-
 ## Model 2 — MobileNetV2 (Transfer Learning)
 
 Pretrained MobileNetV2 (ImageNet weights) with custom classification head. Base layers frozen initially, then fine-tuned progressively across 3 runs.
@@ -126,11 +125,9 @@ Pretrained MobileNetV2 (ImageNet weights) with custom classification head. Base 
 - Loss: Sparse Categorical Crossentropy
 - Regularization: Data Augmentation
 - Callbacks: EarlyStopping (patience=6), ReduceLROnPlateau (patience=5), ModelCheckpoint, TensorBoard
-- 3 progressive fine-tuning runs with increasing unfrozen layers — best result from Run 3
+- 3 progressive fine-tuning runs with increasing unfrozen layers — best result from Run 3 (30 epochs, EarlyStopping at epoch 17)
 
 **Training Curves (Best Run):**
-
-> **Note:** Model trained for 36 epochs total across two runs (30 + 10 epochs). TensorBoard logs captured up to epoch 18 due to session interruption in the second run — graphs below reflect epochs 0–18. Final metrics taken from training logs.
 
 | Accuracy | Loss |
 |----------|------|
@@ -138,20 +135,20 @@ Pretrained MobileNetV2 (ImageNet weights) with custom classification head. Base 
 
 **Interpretation:**
 
-**Accuracy (Epochs 0–18, from TensorBoard):**
-- Both train and validation accuracy show a consistent upward trend from ~65% → 80% and ~65% → 78% respectively
-- Validation fluctuates in early epochs (1–7) — val loss was high (1.2–1.7) indicating the frozen pretrained weights were not yet adapted to the new classes
-- After epoch 8 (val accuracy jumped to 81.77%) both curves stabilize and climb together
-- ReduceLROnPlateau triggered at epoch 16 (lr: 0.001 → 0.0001) — caused a noticeable accuracy jump at epoch 17 (82.63%) and epoch 18 (82.93%)
+**Accuracy (Epochs 1–17, from TensorBoard):**
+- Validation accuracy starts strong at **83.6% in epoch 1**, fluctuates in epochs 2-3 (76-77%) as the model adjusts to the new classes, then climbs steadily
+- Train accuracy rises steadily from ~74% → 89% across the run
+- ReduceLROnPlateau triggered at epoch 6 (lr: 0.001 → 0.0001) — causes a sharp jump in val accuracy from 86.6% (epoch 6) to 89.6% (epoch 7) to 90.4% (epoch 8)
+- From epoch 8 onwards, val accuracy stabilizes in the 90-90.6% range while train accuracy continues rising toward 88-89% — val consistently above or near train
 
-**Loss (Epochs 0–18, from TensorBoard):**
-- Train loss decreases steadily from ~0.93 → 0.44 — smooth and stable learning throughout
-- Validation loss starts very high (~1.22) in early epochs due to pretrained weight mismatch, then converges significantly after epoch 8
-- By epoch 18 val loss reached 0.54 — both curves trending downward with no divergence
+**Loss (Epochs 1–17, from TensorBoard):**
+- Train loss decreases steadily from 0.72 → 0.30 — smooth and stable learning
+- Validation loss is volatile in early epochs (spikes to 1.17-1.38 in epochs 2-3) due to the higher initial learning rate destabilizing pretrained weights
+- After the lr drop at epoch 6, val loss drops sharply and stabilizes around 0.32-0.39 — closely tracking train loss with no divergence
 
 **Full Training Summary (from logs, Epochs 1–17):**
 - Best val accuracy of **90.57%** achieved at epoch 12 (train: 88.37%, val loss: 0.3211) — saved by ModelCheckpoint
-- Val accuracy consistently **exceeded train accuracy** from epoch 7 onwards — excellent generalization with no overfitting
+- Val accuracy consistently exceeded train accuracy from epoch 7 onwards — excellent generalization with no overfitting
 - ReduceLROnPlateau triggered at epoch 6 (lr: 0.001 → 0.0001) — caused a significant jump from 86.6% → 90%+
 - EarlyStopping triggered at epoch 17 — model fully converged
 - **Final best: Train 88.37% — Val 90.57% — val > train confirms strong generalization**
