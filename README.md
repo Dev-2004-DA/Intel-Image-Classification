@@ -31,25 +31,34 @@ Most CNN tutorials rely on Transfer Learning with ImageNet pretrained weights. T
 
 ## Project Structure
 
-```
-Intel-Image-Classification/
+```Intel-Image-Classification/
+│
 ├── notebooks/
 │   ├── 01_CNN_from_scratch.ipynb
 │   ├── 02_Pretrained_MobileNetV2.ipynb
 │   ├── 03_Xception_Transfer_Learning.ipynb
 │   └── 04_Model_Comparison.ipynb
+│
 ├── models/
 │   ├── BEST_MODEL.keras                    # CNN from scratch
 │   ├── BEST_MODEL_MOBILENET.keras          # MobileNetV2 best
-│   └── # Xception model too large for GitHub (112MB)
-│     # Download: https://drive.google.com/file/d/1_sesT3Y5-_PJkrX_zcgpqCVhsg8N0xEL/view?usp=sharing
+│   └── README.md                          # Xception too large (112MB) — Drive link inside
+│
 ├── images/
-│   ├── cnn_accuracy.png
-│   ├── cnn_loss.png
-│   ├── mobilenet_accuracy.png
-│   ├── mobilenet_loss.png
-│   ├── xception_accuracy.png
-│   └── xception_loss.png
+│   ├── cnn_accuracy.png                   
+│   ├── cnn_loss.png                       
+│   ├── mobilenet_accuracy.png             
+│   ├── mobilenet_loss.png                 
+│   ├── xception_accuracy.png              
+│   ├── xception_loss.png                  
+│   ├── confusion_matrices/                
+│   │   ├── cm_scratch_cnn.png
+│   │   ├── cm_mobilenet.png
+│   │   └── cm_xception.png
+│   └── comparison/                        
+│       ├── disagreement_images.png
+│       └── prediction_frequency.png
+│
 └── README.md
 ```
 
