@@ -60,10 +60,10 @@ Intel-Image-Classification/
 | Model | Train Accuracy | Test Accuracy | Generalization Gap |
 |-------|---------------|---------------|--------------------|
 | CNN from Scratch | 80.27% | **77.80%** | 2.5% |
-| MobileNetV2 (Transfer Learning) | 83.70% | **83.40%** | 0.3% |
+| MobileNetV2 (Transfer Learning) | 88.37% | **90.57%** | -2.2% (val > train) |
 | Xception (Transfer Learning) | 93.55% | **91.73%** | 1.8% |
 
-**Key insight:** Progressive improvement across all three architectures — **13.93% jump from scratch CNN to Xception** — with Xception achieving near-professional accuracy on a challenging scene classification task.
+**Key insight:** Progressive improvement across all three architectures — **13.93% jump from scratch CNN to Xception** — with both Transfer Learning models showing val accuracy exceeding train accuracy, confirming strong generalization.
 
 ---
 
@@ -140,11 +140,12 @@ Pretrained MobileNetV2 (ImageNet weights) with custom classification head. Base 
 - Validation loss starts very high (~1.22) in early epochs due to pretrained weight mismatch, then converges significantly after epoch 8
 - By epoch 18 val loss reached 0.54 — both curves trending downward with no divergence
 
-**Full Training Summary (from logs, Epochs 1–36):**
-- Best val accuracy of **83.4%** achieved at epoch 24 (train: 83.7%, val loss: 0.4839) — saved by ModelCheckpoint
-- After epoch 24, val accuracy plateaued between 82–83.4% — model had reached its ceiling
-- ReduceLROnPlateau triggered at epoch 35 (lr: 1e-4 → 1e-5), EarlyStopping at epoch 36
-- **Final best: Train 83.7% — Val 83.4% — Gap: 0.3%** — near-perfect generalization
+**Full Training Summary (from logs, Epochs 1–17):**
+- Best val accuracy of **90.57%** achieved at epoch 12 (train: 88.37%, val loss: 0.3211) — saved by ModelCheckpoint
+- Val accuracy consistently **exceeded train accuracy** from epoch 7 onwards — excellent generalization with no overfitting
+- ReduceLROnPlateau triggered at epoch 6 (lr: 0.001 → 0.0001) — caused a significant jump from 86.6% → 90%+
+- EarlyStopping triggered at epoch 17 — model fully converged
+- **Final best: Train 88.37% — Val 90.57% — val > train confirms strong generalization**
 
 ---
 
@@ -194,7 +195,7 @@ Pretrained Xception (ImageNet weights) with custom classification head. Last 20 
 ## Key Observations
 
 - Scratch CNN converged to 77.8% ceiling across two independent HP tuning runs — architecture was the bottleneck
-- MobileNetV2 improved accuracy by **5.6%** over scratch CNN with near-zero generalization gap (0.3%)
+- MobileNetV2 improved accuracy by **12.77%** over scratch CNN with val accuracy exceeding train — strong generalization
 - Xception achieved **91.73%** — a **13.93% improvement** over scratch CNN in just 9 epochs of training
 - Xception's val accuracy exceeded train accuracy in early epochs — pretrained features generalize immediately
 - Progressive fine-tuning (unfreezing last 20 layers) was key across both Transfer Learning models
